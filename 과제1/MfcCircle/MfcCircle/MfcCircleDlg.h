@@ -4,7 +4,6 @@
 
 #pragma once
 
-
 // CMfcCircleDlg 대화 상자
 class CMfcCircleDlg : public CDialogEx
 {
@@ -33,15 +32,21 @@ public:
         afx_msg void OnEnChangePointRadius();
         afx_msg void OnEnChangeGardenThickness();
 		afx_msg LRESULT OnUpdateDraw(WPARAM wParam, LPARAM lParam);
-        afx_msg BOOL OnEraseBkgnd(HDC hdc);
 		DECLARE_MESSAGE_MAP()
 
 
         // --- 멤버 변수 ---
+        // 이미지 관련 변수
+        CImage m_image;          // 8비트 그레이스케일 이미지
+        int    m_nImageWidth;    // 이미지 폭 (클라이언트 영역 크기에 맞춤)
+        int    m_nImageHeight;   // 이미지 높이
+        int    m_nImageBpp;      // 8비트
+
         // 클릭 지점 관련
         int   m_nClickCount;     // 0~3
         CPoint m_points[3];       // 클릭된 좌표
         bool   m_bPointSet[3];   // 각 점이 설정되었는지
+
 
         // 사용자 입력 값
         int m_nPointRadius;      // 클릭 지점 원의 반지름 (에디트 박스 IDC_EDIT_POINT_RADIUS)
@@ -60,10 +65,22 @@ public:
         CRITICAL_SECTION m_csPoints;
 
         // 정원(세 점을 지나는 원) 계산 함수
-        bool CalculateGardenCircle(CPoint& center, int& radius);
+        bool CalculateGardenCircle(const CPoint& p1, const CPoint& p2, const CPoint& p3, CPoint& center, double& radius);
+
+        // 정원을 그리는 함수
+        void DrawGardenCircle(CImage& image, const CPoint& center, double radius, int thickness, COLORREF color);
+
+        // 클릭 지점 원을 그리는 함수
+        void DrawClickedPoints(CImage& image, int pointRadius, unsigned char gary);
+
+        // m_image를 새로 갱신 : 배경 클리어, 클릭 점과(3개이면) 정원 그리기
+        void RedrawImage();
 
         // UI의 클릭 좌표 표시 업데이트
         void UpdatePointCoordinatesUI();
+
+        // CImage 그리는 함수
+        void UpdateDisplay();
 
 public:
     // 랜덤 이동 쓰레드 함수 (static 멤버)
