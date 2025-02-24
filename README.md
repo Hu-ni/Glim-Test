@@ -1,7 +1,7 @@
 # 정원 그리기 MFC Dialog 프로젝트
 
 이 프로젝트는 MFC Dialog 기반으로 작성된 Windows 애플리케이션으로, 사용자가 클릭한 3개의 점을 기반으로 원(정원)을 그리고, 다양한 UI 상호작용(드래그, 초기화, 랜덤 이동 등)을 구현합니다.  
-특히, CDC 클래스를 사용하지 않고 순수 Win32 GDI 함수를 이용하여 그리기를 수행하며, 깜빡임 문제를 최소화하기 위해 더블 버퍼링 및 WM_ERASEBKGND 오버라이드를 적용하였습니다.
+특히, CDC 클래스를 사용하지 않고 순수 Win32 GDI 함수를 이용하여 그리기를 수행했습니다.
 
 ## 주요 기능
 
@@ -23,6 +23,31 @@
   - [랜덤 이동] 버튼을 누르면, 이미 입력된 3개의 점이 별도의 쓰레드에서 초당 2회(0.5초 간격), 총 10회 랜덤하게 이동하며 정원이 다시 그려집니다.  
   - 이 과정에서 UI 프리징 없이 부드럽게 업데이트됩니다.
 
+## 수정 내역
+
+- **원 그리기 알고리즘 변경**  
+  기존 Ellipse 함수를 이용하여 원을 그리던 방식을 CImage 클래스를 사용해 직접 픽셀에 접근하는 방식으로 변경하였습니다.
+  
+- **그리기 관련 로직 수정**  
+  - **마우스 이벤트 처리 (OnLButtonDown, OnMouseMove, OnLButtonUp):**  
+    그리는 함수가 변경 되면서 사용하는 함수 변경되었습니다.
+
+  - **OnPaint 및 UpdateDisplay:**  
+    CImage를 사용하여 그리는 방식으로 변경되어, 그리기 로직이 간소화되었습니다.
+  
+- **이미지 관련 변수 추가 및 초기화**  
+  - 헤더파일에 이미지 관련 변수 추가하였습니다.
+  - OnInitDialog에서 대화상자 클라이언트 영역 크기를 기준으로 CImage를 생성하고 초기화하는 내용을 추가하였습니다.
+  
+- **CalculateGardenCircle 함수 수정**  
+  - 매개변수로 세 점을 전달받아 원의 중심과 반지름을 계산하는 로직을 수정하여, 보다 명확한 인터페이스와 테스트 용이성을 확보하였습니다.
+  
+- **새로운 함수 추가**  
+  - `DrawGardenCircle` (원 그리기를 위한 로직)
+  - `DrawClickedPoints` (클릭 지점 원(마커) 그리기)
+  - `RedrawImage` (이미지 재구성: 배경 클리어 및 클릭 점과 정원 그리기)
+  - `UpdateDisplay` (이미지의 내용을 대화상자에 출력)
+
 ## 개발 환경
 
 - **개발 도구:** Visual Studio (MFC 지원)
@@ -31,20 +56,12 @@
 
 ## 빌드 및 실행 방법
 
-1. Visual Studio에서 새 MFC Dialog 기반 프로젝트로 생성합니다.
-2. 제공된 소스 파일(`MyDialog.h`, `MyDialog.cpp` 등)을 프로젝트에 추가합니다.
-3. 리소스 에디터를 이용해 다음 컨트롤들을 추가 및 ID를 설정합니다:
-   - Edit 컨트롤: `IDC_EDIT_POINT_RADIUS` (클릭 지점 원의 반지름 입력)
-   - Edit 컨트롤: `IDC_EDIT_GARDEN_THICKNESS` (정원 외곽선 두께 입력)
-   - Static 컨트롤: `IDC_STATIC_POINT1`, `IDC_STATIC_POINT2`, `IDC_STATIC_POINT3` (각 클릭 좌표 표시)
-   - 버튼: `IDC_BUTTON_INIT` ([초기화] 버튼)
-   - 버튼: `IDC_BUTTON_RANDOM` ([랜덤 이동] 버튼)
-4. 소스 코드 내에 WM_PAINT, WM_ERASEBKGND, WM_CTLCOLOR, 마우스 이벤트(ON_LBUTTONDOWN, ON_MOUSEMOVE, ON_LBUTTONUP) 및 랜덤 이동 쓰레드 등의 메시지 처리기를 구현합니다.
-5. 프로젝트를 빌드한 후, 실행하여 기능을 테스트합니다.
+1. Visual Studio가 설치된 환경에서, 제공된 MfcCircle 솔루션 파일(`MfcCircle.sln`)을 엽니다.
+2. 솔루션을 빌드(Build)한 후, 실행(Run)하면 애플리케이션이 바로 시작됩니다.
 
 ## 프로젝트 구조
 
-- **MyDialog.h / MyDialog.cpp:**  
+- **MfcCircleDlg.h / MfcCircleDlg.cpp:**  
   - 대화상자 클래스 구현 파일  
   - 클릭 지점, 정원 그리기, 드래그, 초기화, 랜덤 이동 등의 기능 구현
 
@@ -54,8 +71,6 @@
 ## 주의 사항
 
 - 이 프로젝트는 CDC 클래스 대신 Win32 GDI 함수를 사용하여 그리기를 구현하였습니다.
-- 깜빡임을 최소화하기 위해 더블 버퍼링, WM_ERASEBKGND 오버라이드, WS_CLIPCHILDREN/WS_EX_COMPOSITED 스타일 등을 적용하였습니다.
-- Static 컨트롤의 투명 배경 처리는 WM_CTLCOLOR 메시지 핸들러와 함께 구현되어 있습니다.
 
 ## 라이선스
 
